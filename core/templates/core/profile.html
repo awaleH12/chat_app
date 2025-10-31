@@ -1,13 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}All Profiles{% endblock %}
+{% block content %}
     <h1>All Profiles</h1>
-    <p><a href="{% url 'create_profile' %}">Create new profile</a></p>
+        {% if not my_profile %}
+            <div style="border:1px solid #cfe2ff; background:#e7f1ff; color:#084298; padding:12px; border-radius:6px; margin:12px 0;">
+                <strong>Complete your profile:</strong> You haven't created your profile yet. 
+                <a href="{% url 'create_profile' %}" style="background:#0d6efd;color:#fff;padding:6px 10px;border-radius:4px;text-decoration:none; margin-left:8px;">Create profile</a>
+            </div>
+        {% endif %}
+        {% if not my_profile %}
+            <p><a href="{% url 'create_profile' %}">Create new profile</a></p>
+        {% endif %}
     <div>
         {% for profile in profiles %}
             <section style="border:1px solid #ddd; padding:8px; margin:10px auto;">
@@ -20,14 +23,15 @@
                 {% else %}
                     <p>No profile picture</p>
                 {% endif %}
+                <p style="margin-top:6px; color:#555;">
+                    👍 {{ profile.likes_count }} • ❤️ {{ profile.loves_count }} • 👎 {{ profile.dislikes_count }}
+                </p>
                 <p style="margin-top:8px;">
-                    <a href="{% url 'view_profile' profile.pk %}" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;text-decoration:none; margin-right:8px;">View</a>
-                    <a href="{% url 'delete_profile' profile.pk %}" style="background:#dc3545;color:white;padding:6px 10px;border-radius:4px;text-decoration:none;">Delete</a>
+                    <a href="{% url 'view_profile' profile.pk %}" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;text-decoration:none;">View</a>
                 </p>
             </section>
         {% empty %}
             <p>No profiles found.</p>
         {% endfor %}
     </div>
-</body>
-</html>
+{% endblock %}

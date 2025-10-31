@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Chat App{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; }
+    header { background: #0d6efd; color: #fff; padding: .75rem 1rem; }
+    header .nav { display: flex; align-items: center; gap: 1rem; }
+    header a { color: #fff; text-decoration: none; font-weight: 600; }
+    header .spacer { flex: 1; }
+    main { padding: 1rem; max-width: 960px; margin: 0 auto; }
+    .messages { margin: .5rem 0 1rem; }
+    .msg { padding:.5rem .75rem; border-radius: 4px; margin-bottom: .5rem; }
+    .msg.success { background: #d1e7dd; color:#0f5132; }
+    .msg.info { background: #cfe2ff; color:#084298; }
+    .msg.warning { background: #fff3cd; color:#664d03; }
+    .msg.error { background: #f8d7da; color:#842029; }
+    .btn { display:inline-block; padding:.35rem .7rem; border-radius:4px; background:#fff; color:#0d6efd; }
+    .avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.6); }
+    .avatar-fallback { width:32px; height:32px; border-radius:50%; background:#fff; color:#0d6efd; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    .menu { position:relative; }
+    .dropdown { display:none; position:absolute; right:0; top:calc(100% + 6px); background:#fff; color:#000; box-shadow:0 6px 18px rgba(0,0,0,.15); border-radius:6px; min-width: 180px; z-index: 1000; }
+    .dropdown a, .dropdown form button { display:block; width:100%; text-align:left; padding:.5rem .75rem; color:#000; text-decoration:none; background:none; border:none; cursor:pointer; }
+    .dropdown a:hover, .dropdown form button:hover { background:#f2f2f2; }
+    /* Open dropdown via .open class (toggled with JS) instead of hover */
+    .menu.open .dropdown { display:block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <a href="/core/">Home</a>
+      <div class="spacer"></div>
+      {% if request.user.is_authenticated %}
+        <div class="menu" id="user-menu">
+          <button type="button" class="menu-toggle" aria-haspopup="true" aria-expanded="false" style="background:none;border:none;padding:0;display:flex;align-items:center;gap:.5rem;cursor:pointer;color:inherit;">
+            {% if request.user.profile and request.user.profile.profile_picture %}
+              <img class="avatar" src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.get_username }}" />
+            {% else %}
+              <div class="avatar-fallback" title="{{ request.user.get_username }}">{{ request.user.get_username|slice:":1"|upper }}</div>
+            {% endif %}
+          </button>
+          <div class="dropdown">
+            {% if request.user.profile %}
+              <a href="{% url 'my_profile' %}">View profile</a>
+              <a href="{% url 'profile_settings' %}">Settings</a>
+            {% else %}
+              <a href="{% url 'create_profile' %}">Create profile</a>
+            {% endif %}
+            <form action="{% url 'logout' %}" method="post">
+              {% csrf_token %}
+              <button type="submit">Logout</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <a class="btn" href="{% url 'login' %}">Login</a>
+        <a class="btn" href="{% url 'signup' %}" style="margin-left:.5rem;">Register</a>
+      {% endif %}
+    </div>
+  </header>
+  <main>
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="msg {{ message.tags|default:'info' }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+  <!-- Toast container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true" style="position:fixed; bottom:16px; right:16px; z-index:2000; display:flex; flex-direction:column; gap:8px;"></div>
+  <script>
+    (function() {
+      const menu = document.getElementById('user-menu');
+      if (!menu) return;
+      const toggle = menu.querySelector('.menu-toggle');
+      function openMenu() {
+        menu.classList.add('open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+      }
+      function closeMenu() {
+        menu.classList.remove('open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+      function toggleMenu(e) {
+        e.stopPropagation();
+        if (menu.classList.contains('open')) {
+          closeMenu();
+        } else {
+          // Close any other open menus (future-proofing)
+          document.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open'));
+          openMenu();
+        }
+      }
+      if (toggle) toggle.addEventListener('click', toggleMenu);
+      // Prevent inside clicks from closing the menu
+      menu.addEventListener('click', function(e) { e.stopPropagation(); });
+      // Close on outside click or Escape
+      document.addEventListener('click', closeMenu);
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeMenu(); });
+    })();
+
+    // Simple toast/notification helper
+    (function(){
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      function colorFor(type){
+        switch(type){
+          case 'success': return {bg:'#d1e7dd', fg:'#0f5132'};
+          case 'warning': return {bg:'#fff3cd', fg:'#664d03'};
+          case 'error': return {bg:'#f8d7da', fg:'#842029'};
+          default: return {bg:'#cfe2ff', fg:'#084298'}; // info
+        }
+      }
+      window.notify = function(message, type){
+        const {bg, fg} = colorFor(type);
+        const toast = document.createElement('div');
+        toast.setAttribute('role', 'status');
+        toast.style.background = bg;
+        toast.style.color = fg;
+        toast.style.border = '1px solid rgba(0,0,0,.08)';
+        toast.style.borderRadius = '6px';
+        toast.style.boxShadow = '0 6px 18px rgba(0,0,0,.08)';
+        toast.style.padding = '.6rem .8rem';
+        toast.style.maxWidth = '360px';
+        toast.style.fontSize = '14px';
+        toast.style.display = 'flex';
+        toast.style.alignItems = 'flex-start';
+        toast.style.gap = '.5rem';
+        const text = document.createElement('div');
+        text.textContent = String(message || '');
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Close');
+        close.textContent = '×';
+        close.style.background = 'transparent';
+        close.style.border = 'none';
+        close.style.color = fg;
+        close.style.fontSize = '18px';
+        close.style.lineHeight = '1';
+        close.style.cursor = 'pointer';
+        close.addEventListener('click', () => container.removeChild(toast));
+        toast.appendChild(text);
+        toast.appendChild(close);
+        container.appendChild(toast);
+        // Auto-hide after 3s
+        setTimeout(() => {
+          if (toast.parentNode === container) container.removeChild(toast);
+        }, 3000);
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -18,12 +18,18 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
+from core import views as core_views
 
 urlpatterns = [
+    # Redirect the site root to the core app's main page
+    path('', RedirectView.as_view(pattern_name='profile_view', permanent=False)),
     path('admin/', admin.site.urls),
     path('core/', include('core.urls')),
     # Django auth (login/logout/password management)
     path('accounts/', include('django.contrib.auth.urls')),
+    # Registration
+    path('accounts/signup/', core_views.signup, name='signup'),
 ]
 
 if settings.DEBUG:

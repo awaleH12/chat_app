@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ profile.firstname }} {{ profile.lastname }}</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}{{ profile.firstname }} {{ profile.lastname }}{% endblock %}
+{% block content %}
     <h1>{{ profile.firstname }} {{ profile.lastname }}</h1>
     <p>Age: {{ profile.age }}</p>
     <p>Gender: {{ profile.get_gender_display }}</p>
@@ -14,10 +9,107 @@
         <p><img src="{{ profile.profile_picture.url }}" alt="{{ profile.firstname }}'s picture" style="max-width:300px; height:auto;"></p>
     {% endif %}
 
+    <section style="margin: 12px 0; padding: 10px; border:1px solid #eee; border-radius:6px;">
+        <style>
+          .btn-chip { padding:6px 10px; border-radius:4px; border:1px solid #ddd; cursor:pointer; background:#fff; }
+          .btn-chip.selected.like { background:#d1e7dd; color:#0f5132; }
+          .btn-chip.selected.love { background:#f8d7da; color:#842029; }
+          .btn-chip.selected.dislike { background:#e2e3e5; color:#41464b; }
+        </style>
+                {% if request.user != profile.user %}
+                    <form id="react-form" method="post" action="{% url 'react_profile' profile.pk %}" style="display:flex; gap:.5rem; align-items:center; flex-wrap: wrap;">
+              {% csrf_token %}
+              <div>
+                                    <button name="reaction" value="like" type="submit" class="btn-chip like {% if my_reaction and my_reaction.reaction == 'like' %}selected{% endif %}">👍 Like (<span id="likes-count">{{ profile.likes_count }}</span>)</button>
+              </div>
+              <div>
+                                    <button name="reaction" value="love" type="submit" class="btn-chip love {% if my_reaction and my_reaction.reaction == 'love' %}selected{% endif %}">❤️ Love (<span id="loves-count">{{ profile.loves_count }}</span>)</button>
+              </div>
+              <div>
+                                    <button name="reaction" value="dislike" type="submit" class="btn-chip dislike {% if my_reaction and my_reaction.reaction == 'dislike' %}selected{% endif %}">👎 Dislike (<span id="dislikes-count">{{ profile.dislikes_count }}</span>)</button>
+              </div>
+          </form>
+                    <script>
+                        (function(){
+                            const form = document.getElementById('react-form');
+                            if (!form) return;
+                            const buttons = form.querySelectorAll('button[name="reaction"]');
+                            const likesCount = document.getElementById('likes-count');
+                            const lovesCount = document.getElementById('loves-count');
+                            const dislikesCount = document.getElementById('dislikes-count');
+
+                            function getCookie(name){
+                                const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+                                return v ? v.pop() : '';
+                            }
+
+                            async function postReaction(reaction){
+                                const body = new URLSearchParams();
+                                body.set('reaction', reaction);
+                                try{
+                                    const res = await fetch(form.action, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': getCookie('csrftoken'),
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                            'Accept': 'application/json'
+                                        },
+                                        body
+                                    });
+                                    const data = await res.json();
+                                    if(!res.ok){
+                                        throw new Error(data && data.error ? data.error : 'Failed to react');
+                                    }
+                                    // Update counts
+                                    if (likesCount) likesCount.textContent = data.likes_count;
+                                    if (lovesCount) lovesCount.textContent = data.loves_count;
+                                    if (dislikesCount) dislikesCount.textContent = data.dislikes_count;
+                                    // Update selected state
+                                    buttons.forEach(b => b.classList.remove('selected'));
+                                    if (data.my_reaction){
+                                        const btn = Array.from(buttons).find(b => b.value === data.my_reaction);
+                                        if (btn) btn.classList.add('selected');
+                                    }
+
+                                    // Success toast
+                                    if (window.notify){
+                                        let msg = 'Reaction updated';
+                                        if (data.my_reaction === 'like') msg = 'Liked';
+                                        else if (data.my_reaction === 'love') msg = 'Loved';
+                                        else if (data.my_reaction === 'dislike') msg = 'Disliked';
+                                        else if (!data.my_reaction) msg = 'Reaction removed';
+                                        window.notify(msg, 'success');
+                                    }
+                                }catch(err){
+                                    // Toast message via global notify(); fallback to alert if unavailable
+                                    if (window.notify) {
+                                        window.notify(err.message || 'Something went wrong', 'error');
+                                    } else {
+                                        alert(err.message || 'Something went wrong');
+                                    }
+                                }
+                            }
+
+                            buttons.forEach(btn => {
+                                btn.addEventListener('click', function(e){
+                                    e.preventDefault();
+                                    const reaction = this.value;
+                                    postReaction(reaction);
+                                });
+                            });
+                        })();
+                    </script>
+        {% else %}
+          <p style="color:#6c757d; margin:0;">You can't react to your own profile.</p>
+          <p style="margin:.5rem 0 0; color:#555;">👍 {{ profile.likes_count }} • ❤️ {{ profile.loves_count }} • 👎 {{ profile.dislikes_count }}</p>
+        {% endif %}
+    </section>
+
     <p>
-        <a href="{% url 'edit_profile' profile.pk %}" style="background:#28a745;color:white;padding:8px 12px;border-radius:4px;text-decoration:none;">Edit</a>
-        <a href="{% url 'delete_profile' profile.pk %}" style="background:#dc3545;color:white;padding:8px 12px;border-radius:4px;text-decoration:none; margin-left:8px;">Delete</a>
+        {% if request.user == profile.user %}
+            <a href="{% url 'edit_profile' profile.pk %}" style="background:#28a745;color:white;padding:8px 12px;border-radius:4px;text-decoration:none;">Edit</a>
+            <a href="{% url 'delete_profile' profile.pk %}" style="background:#dc3545;color:white;padding:8px 12px;border-radius:4px;text-decoration:none; margin-left:8px;">Delete</a>
+        {% endif %}
         <a href="{% url 'profile_view' %}" style="margin-left:12px;">Back to list</a>
     </p>
-</body>
-</html>
+{% endblock %}

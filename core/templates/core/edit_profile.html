@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
     <h1>Edit profile for {{ profile.firstname }} {{ profile.lastname }}</h1>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -16,8 +11,7 @@
         <p>{{ form.gender.label_tag }}<br>{{ form.gender }}{{ form.gender.errors }}</p>
         <p>{{ form.address.label_tag }}<br>{{ form.address }}{{ form.address.errors }}</p>
         <p>{{ form.profile_picture.label_tag }}<br>{{ form.profile_picture }}{{ form.profile_picture.errors }}</p>
-        <button type="submit">Save changes</button>
-        <a href="{% url 'view_profile' profile.pk %}">Cancel</a>
+    <button type="submit">Save changes</button>
+    <a href="{% url 'view_profile' profile.pk %}">Cancel</a>
     </form>
-</body>
-</html>
+{% endblock %}

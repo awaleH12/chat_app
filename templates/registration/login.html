@@ -1,18 +1,7 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Log in</title>
-  <style>
-    body{font-family: sans-serif; padding: 2rem}
-    .container{max-width:420px;margin:0 auto}
-    label{display:block;margin-top:.75rem}
-    input[type=text], input[type=password]{width:100%;padding:.5rem;margin-top:.25rem}
-    .submit{margin-top:1rem}
-  </style>
-</head>
-<body>
-  <div class="container">
+{% extends 'base.html' %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+  <div style="max-width: 420px; margin: 0 auto;">
     <h1>Log in</h1>
 
     {% if form.errors %}
@@ -33,14 +22,13 @@
 
       <input type="hidden" name="next" value="{{ next }}">
 
-      <div class="submit">
+      <div style="margin-top: 1rem;">
         <button type="submit">Log in</button>
       </div>
     </form>
 
-    <p>
+    <p style="margin-top: .75rem;">
       <a href="{% url 'password_reset' %}">Forgot password?</a>
     </p>
   </div>
-</body>
-</html>
+{% endblock %}
