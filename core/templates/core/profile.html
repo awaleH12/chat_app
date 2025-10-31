@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>All Profiles</h1>
+    <p><a href="{% url 'create_profile' %}">Create new profile</a></p>
+    <div>
+        {% for profile in profiles %}
+            <section style="border:1px solid #ddd; padding:8px; margin:10px auto;">
+                <h2><a href="{% url 'view_profile' profile.pk %}">{{ profile.firstname }} {{ profile.lastname }}</a></h2>
+                <p>Age: {{ profile.age }}</p>
+                <p>Gender: {{ profile.get_gender_display }}</p>
+                <p>Address: {{ profile.address }}</p>
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="{{ profile.firstname }}'s picture" style="max-width:200px; height:auto;">
+                {% else %}
+                    <p>No profile picture</p>
+                {% endif %}
+                <p style="margin-top:8px;">
+                    <a href="{% url 'view_profile' profile.pk %}" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;text-decoration:none; margin-right:8px;">View</a>
+                    <a href="{% url 'delete_profile' profile.pk %}" style="background:#dc3545;color:white;padding:6px 10px;border-radius:4px;text-decoration:none;">Delete</a>
+                </p>
+            </section>
+        {% empty %}
+            <p>No profiles found.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

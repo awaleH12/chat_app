@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile.firstname }} {{ profile.lastname }}</title>
+</head>
+<body>
+    <h1>{{ profile.firstname }} {{ profile.lastname }}</h1>
+    <p>Age: {{ profile.age }}</p>
+    <p>Gender: {{ profile.get_gender_display }}</p>
+    <p>Address: {{ profile.address }}</p>
+    {% if profile.profile_picture %}
+        <p><img src="{{ profile.profile_picture.url }}" alt="{{ profile.firstname }}'s picture" style="max-width:300px; height:auto;"></p>
+    {% endif %}
+
+    <p>
+        <a href="{% url 'edit_profile' profile.pk %}" style="background:#28a745;color:white;padding:8px 12px;border-radius:4px;text-decoration:none;">Edit</a>
+        <a href="{% url 'delete_profile' profile.pk %}" style="background:#dc3545;color:white;padding:8px 12px;border-radius:4px;text-decoration:none; margin-left:8px;">Delete</a>
+        <a href="{% url 'profile_view' %}" style="margin-left:12px;">Back to list</a>
+    </p>
+</body>
+</html>

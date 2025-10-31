@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm delete</title>
+</head>
+</head>
+<body>
+    <h1>Delete profile</h1>
+
+    <div style="border:2px solid #f5c6cb; background:#f8d7da; color:#721c24; padding:12px; margin-bottom:12px;">
+        <strong>Warning:</strong> This will permanently delete the profile and all associated data (including the uploaded profile picture).
+        This action cannot be undone. Please confirm you want to delete the profile below.
+    </div>
+
+    <section style="border:1px solid #ddd; padding:8px; margin-bottom:12px; max-width:600px;">
+        <h2>{{ profile.firstname }} {{ profile.lastname }}</h2>
+        <p>Age: {{ profile.age }}</p>
+        <p>Gender: {{ profile.get_gender_display }}</p>
+        <p>Address: {{ profile.address }}</p>
+        {% if profile.profile_picture %}
+            <p><img src="{{ profile.profile_picture.url }}" alt="{{ profile.firstname }}'s picture" style="max-width:200px; height:auto; border:1px solid #ccc;"></p>
+        {% endif %}
+    </section>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" style="background:#c82333;color:white;padding:8px 12px;border:none;">Yes, permanently delete this profile</button>
+        <a href="{% url 'profile_view' %}" style="margin-left:12px;">Cancel</a>
+    </form>
+</body>
+</html>

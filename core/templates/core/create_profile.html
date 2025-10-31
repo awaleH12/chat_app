@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Profile</title>
+</head>
+<body>
+    <h1>Create a profile</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <p>
+            {{ form.firstname.label_tag }}<br>
+            {{ form.firstname }}
+            {{ form.firstname.errors }}
+        </p>
+
+        <p>
+            {{ form.lastname.label_tag }}<br>
+            {{ form.lastname }}
+            {{ form.lastname.errors }}
+        </p>
+
+        <p>
+            {{ form.age.label_tag }}<br>
+            {{ form.age }}
+            {{ form.age.errors }}
+        </p>
+
+        <p>
+            {{ form.gender.label_tag }}<br>
+            {{ form.gender }}
+            {{ form.gender.errors }}
+        </p>
+
+        <p>
+            {{ form.address.label_tag }}<br>
+            {{ form.address }}
+            {{ form.address.errors }}
+        </p>
+
+        <p>
+            {{ form.profile_picture.label_tag }}<br>
+            {{ form.profile_picture }}
+            {{ form.profile_picture.errors }}
+        </p>
+
+        <button type="submit">Create Profile</button>
+        <a href="{% url 'profile_view' %}">Back</a>
+    </form>
+</body>
+</html>
